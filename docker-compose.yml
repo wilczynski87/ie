@@ -1,0 +1,22 @@
+version: '1'
+
+services:
+  app:
+    image: 'ie'
+    build:
+      context: .
+    container_name: ie
+    depends_on:
+      - dbie
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbie:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+          
+  dbie:
+    image: 'postgres'
+    container_name: dbie
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
