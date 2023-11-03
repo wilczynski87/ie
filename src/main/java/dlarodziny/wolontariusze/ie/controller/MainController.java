@@ -10,17 +10,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
 
-import dlarodziny.wolontariusze.ie.service.Credentials;
+import dlarodziny.wolontariusze.ie.repositories.VolunteerRepo;
+import dlarodziny.wolontariusze.ie.service.ReadFromSheets;
+import dlarodziny.wolontariusze.ie.service.VolunteerDTO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
 public class MainController {
 
-	private final Credentials credentials;
+	private final ReadFromSheets credentials;
+    private final VolunteerDTO volunteerDTO;
 
-	public MainController(Credentials credentials) {
+	public MainController(ReadFromSheets credentials, VolunteerDTO volunteerDTO) {
 		this.credentials = credentials;
+        this.volunteerDTO = volunteerDTO;
 	};
     
     @GetMapping("/getVolunteers")
@@ -37,14 +41,27 @@ public class MainController {
 			.execute();
 
 		List<List<Object>> values = response.getValues();
+		// System.out.println(values);
+        
+        var test1 = values.get(0);
+		System.out.println();
+        System.out.println(volunteerDTO.mapVolunteer(test1));
+		System.out.println();
+		System.out.println(volunteerDTO.mapVolunteer(test1).getUsername());
+		System.out.println();
+        System.out.println(volunteerDTO.getVolunteer(volunteerDTO.mapVolunteer(test1).getUsername()));
+		System.out.println();
+        if(volunteerDTO.getVolunteer(volunteerDTO.mapVolunteer(test1).getUsername()) != null) 
+            System.out.println(volunteerDTO.saveVolunteer(volunteerDTO.mapVolunteer(test1)));
+        
 
-		if(values == null || values.isEmpty()) {
-			System.out.println("gówno");
-		} else {
-			for(List<Object> row : values) {
-				System.out.println(row);
-			}
-		}
+        // if(values == null || values.isEmpty()) {
+		// 	System.out.println("gówno");
+		// } else {
+		// 	for(List<Object> row : values) {
+		// 		System.out.println(volunteerDTO.mapVolunteer(row));
+		// 	}
+		// }
 
         return values;
     }

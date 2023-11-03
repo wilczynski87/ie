@@ -20,10 +20,10 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 
-import dlarodziny.wolontariusze.ie.model.SheetsAndProject;
+import dlarodziny.wolontariusze.ie.IeApplication;
 
 @Service
-public class Credentials {
+public class ReadFromSheets {
 	private Sheets sheetsService;
     private String APPLICATION_NAME = "Google Sheets Example";
     private String SPREADSHEET_ID = "1txK2VhZ_pojHliFtKzjimlIirYqSf6cLTYN11pW_R-M";
@@ -31,7 +31,7 @@ public class Credentials {
 
     private Credential authorize() throws IOException, GeneralSecurityException {
 
-        InputStream in = SheetsAndProject.class.getResourceAsStream("/google-sheets-client-secret.json");
+        InputStream in = IeApplication.class.getResourceAsStream("/google-sheets-client-secret.json");
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
             GsonFactory.getDefaultInstance(), 
             new InputStreamReader(in)
