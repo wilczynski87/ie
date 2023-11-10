@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
 
-import dlarodziny.wolontariusze.ie.repositories.VolunteerRepo;
+import dlarodziny.wolontariusze.ie.model.Contact;
+import dlarodziny.wolontariusze.ie.model.MappedVolunteerAndDetails;
+import dlarodziny.wolontariusze.ie.service.ContactService;
 import dlarodziny.wolontariusze.ie.service.ReadFromSheets;
-import dlarodziny.wolontariusze.ie.service.VolunteerDTO;
+import dlarodziny.wolontariusze.ie.service.VolunteerService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,54 +22,44 @@ import lombok.extern.slf4j.Slf4j;
 public class MainController {
 
 	private final ReadFromSheets credentials;
-    private final VolunteerDTO volunteerDTO;
+	private final VolunteerService volunteerService;
+	private final ContactService contactService;
 
-	public MainController(ReadFromSheets credentials, VolunteerDTO volunteerDTO) {
+	public MainController(ReadFromSheets credentials, VolunteerService volunteerService, ContactService contactService) {
 		this.credentials = credentials;
-        this.volunteerDTO = volunteerDTO;
-	};
+		this.volunteerService = volunteerService;
+		this.contactService = contactService;
+	}
     
     @GetMapping("/getVolunteers")
-    public List<List<Object>> getVolunteers(@RequestParam String id, @RequestParam String fold) throws IOException, GeneralSecurityException {
+    public List<MappedVolunteerAndDetails> getVolunteers(@RequestParam String id, @RequestParam String fold, @RequestParam String scope) throws IOException, GeneralSecurityException {
         log.info("\n\ngetVolunteers endpoint reached!\nid = {}\nfold = {}", id, fold);
 
         credentials.setSPREADSHEET_ID(id);
         credentials.setUpCredentials();
 
-		String range = fold + "!A1:B27";
+		String range = fold + "!" + scope;
 
 		ValueRange response = credentials.readSheetsService().spreadsheets().values()
 			.get(credentials.getSpreadshitId(), range)
 			.execute();
 
-		List<List<Object>> values = response.getValues();
-		// System.out.println(values);
-        
-        var test1 = values.get(0);
-		System.out.println();
-        System.out.println(volunteerDTO.mapVolunteer(test1));
-		System.out.println();
-		System.out.println(volunteerDTO.mapVolunteer(test1).getUsername());
-		System.out.println();
-        System.out.println(volunteerDTO.getVolunteer(volunteerDTO.mapVolunteer(test1).getUsername()));
-		System.out.println();
-        if(volunteerDTO.getVolunteer(volunteerDTO.mapVolunteer(test1).getUsername()) != null) 
-            System.out.println(volunteerDTO.saveVolunteer(volunteerDTO.mapVolunteer(test1)));
-        
+		//import from sheet and translat to classes
+		var testList = response.getValues().stream()
+			.filter(row -> row != null && !row.isEmpty())
+			.map(MappedVolunteerAndDetails::new)
+			.toList();
+		volunteerService.setPotentialVolunteers(testList);
 
-        // if(values == null || values.isEmpty()) {
-		// 	System.out.println("gówno");
-		// } else {
-		// 	for(List<Object> row : values) {
-		// 		System.out.println(volunteerDTO.mapVolunteer(row));
-		// 	}
-		// }
+		// import from database
+		volunteerService.importVolunteerdetailsList();
+		volunteerService.importVolunteerList();
 
-        return values;
+        return volunteerService.saveVolunteersAndDetails();
     }
 
     @GetMapping("/getContacts")
-    public List<List<Object>> getContacts(@RequestParam String id, @RequestParam String fold, @RequestParam String scope) throws IOException, GeneralSecurityException {
+    public List<Contact> getContacts(@RequestParam String id, @RequestParam String fold, @RequestParam String scope) throws IOException, GeneralSecurityException {
         log.info("\n\ngetContacts endpoint reached!" +
         "\nid = {}" +
         "\nfold = {}" +
@@ -83,16 +75,18 @@ public class MainController {
 			.get(credentials.getSpreadshitId(), range)
 			.execute();
 
-		List<List<Object>> values = response.getValues();
+		// import rows from sheet
+		List<List<Object>> rows = response.getValues();
 
-		if(values == null || values.isEmpty()) {
-			System.out.println("gówno");
-		} else {
-			for(List<Object> row : values) {
-				System.out.println(row);
-			}
-		}
+		// mapping contacts to service class
+		rows.stream()
+			.filter(row -> row != null && !row.isEmpty())
+			.map(contactService::mapContactFromRow)
+			.forEach(contact -> contactService.getContactsFromRows().add(contact));
 
-        return values;
+		// removing duplicates
+		contactService.removeDuplicatesFromRows();
+
+        return contactService.saveContactsToDb();
     }
 }

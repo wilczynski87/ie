@@ -3,17 +3,25 @@ package dlarodziny.wolontariusze.ie.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Arrays;
 
+import org.springframework.data.relational.core.mapping.Table;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VolunteerDetails {
+@Entity
+public class Volunteerdetails { 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     Long patron;
     String name;
@@ -30,13 +38,13 @@ public class VolunteerDetails {
         return Period.between(this.started, LocalDate.now()).toString();
     }
 
-    public VolunteerDetails(Long patron) {
+    public Volunteerdetails(Long patron) {
         this.patron = patron;
     }
 
-    public static VolunteerDetails getVolunteerDetails(VolunteerDetails[] volunteerDetails, Long id) {
-        System.out.println(volunteerDetails);
-        return Arrays.stream(volunteerDetails)
+    public static Volunteerdetails getVolunteerdetails(Volunteerdetails[] Volunteerdetails, Long id) {
+        System.out.println(Volunteerdetails);
+        return Arrays.stream(Volunteerdetails)
             .filter(details -> details.getPatron().equals(id))
             .findFirst()
             .orElse(null);

@@ -3,7 +3,11 @@ package dlarodziny.wolontariusze.ie.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -11,8 +15,11 @@ import java.util.Arrays;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 public class Contact {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String contactName;
     private String phone;
@@ -27,14 +34,14 @@ public class Contact {
         this.patron = patron;
     }
 
-    public VolunteerDetails getVolunteerDetails(VolunteerDetails[] volunteerDetails) {
+    public Volunteerdetails getVolunteerDetails(Volunteerdetails[] volunteerDetails) {
         return Arrays.stream(volunteerDetails)
             .filter(details -> details.getPatron().equals(this.patron))
             .findFirst()
             .orElse(null);
     }
     
-    public String getVolunteerName(VolunteerDetails[] volunteerDetails) {
+    public String getVolunteerName(Volunteerdetails[] volunteerDetails) {
         return Arrays.stream(volunteerDetails)
             .filter(details -> details.getPatron().equals(this.patron))
             .findFirst()
