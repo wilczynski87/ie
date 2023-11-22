@@ -1,13 +1,8 @@
 package dlarodziny.wolontariusze.ie.service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.ArrayList;
-import java.util.Collections;
-
 import org.springframework.stereotype.Service;
 
 import dlarodziny.wolontariusze.ie.model.Attitude;

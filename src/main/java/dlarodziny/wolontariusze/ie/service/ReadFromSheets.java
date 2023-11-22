@@ -26,6 +26,8 @@ import dlarodziny.wolontariusze.ie.IeApplication;
 public class ReadFromSheets {
 	private Sheets sheetsService;
     private String APPLICATION_NAME = "Google Sheets Example";
+    private final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private final String TOKENS_DIRECTORY_PATH = "tokens";
     private String SPREADSHEET_ID = "1txK2VhZ_pojHliFtKzjimlIirYqSf6cLTYN11pW_R-M";
     private String fold = "Opiekun";
 

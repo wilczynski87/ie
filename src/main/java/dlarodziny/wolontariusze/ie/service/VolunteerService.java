@@ -1,12 +1,10 @@
 package dlarodziny.wolontariusze.ie.service;
 
-import org.apache.logging.log4j.util.StringBuilders;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import dlarodziny.wolontariusze.ie.model.MappedVolunteerAndDetails;
-import dlarodziny.wolontariusze.ie.model.Role;
 import dlarodziny.wolontariusze.ie.model.Volunteer;
 import dlarodziny.wolontariusze.ie.model.Volunteerdetails;
 import dlarodziny.wolontariusze.ie.repositories.VolunteerDetailsRepo;
@@ -67,6 +65,42 @@ public class VolunteerService {
         mappedVolunteerAndDetails.setVolunteerdetails(test1);
         return mappedVolunteerAndDetails;
     }
+
+    public List<MappedVolunteerAndDetails> filterVolunteersToSave() {
+        var filteredVolunteers = potentialVolunteers.stream()
+			// .peek(System.out::println)
+            // cutting of rows, from potential voluntters, what have same email!
+            .filter(row -> !emailMatchVolunteerDetails(row.getVolunteerdetails().getEmail()))
+			// .peek(System.out::println)
+            // cutting of rows, from potential voluntters, what have same username!
+            .filter(row -> !isDublicatedUsername(row.getVolunteer()))
+			// .peek(System.out::println)
+            .toList()
+			;
+        this.potentialVolunteers = filteredVolunteers;
+
+        return filteredVolunteers;
+    }
+
+    public void mapVolunteersWithId(List<Volunteer> savedVolunteerList) {
+        int index = 0;
+        for(var potential : this.potentialVolunteers) {
+            for(var saved : savedVolunteerList) {
+                if(potential.getVolunteer().getUsername().equals(saved.getUsername())) {
+                    this.potentialVolunteers.get(index).setIdAndPatron(saved.getId());
+                }
+            }
+            index++;
+        }
+    }
+    
+/*  TO DO:
+ * wyslij zmapowanych wolontariuszy do API
+ * odbierz ich ID
+ * utwórz Volunteerdetails, razem z Patronami
+ * wyślij Volunteerdetails do API
+ */
+
 
     private boolean emailMatchVolunteerDetails(String email) {
         // System.out.println(name + " " + surname + " " + email);

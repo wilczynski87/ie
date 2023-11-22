@@ -41,6 +41,11 @@ public class MappedVolunteerAndDetails {
         
         return userDetails;
     }
+    
+    public void setIdAndPatron(Long id) {
+        this.volunteer.setId(id);
+        this.volunteerdetails.setPatron(id);
+    }
 
     private String createLogin(String fullName) {
         return fullName.replaceAll(" ", "");

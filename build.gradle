@@ -40,6 +40,9 @@ dependencies {
 	implementation group: 'com.google.oauth-client', name: 'google-oauth-client-jetty', version: '1.34.1'
 	// https://mvnrepository.com/artifact/com.google.apis/google-api-services-sheets
 	implementation group: 'com.google.apis', name: 'google-api-services-sheets', version: 'v4-rev20220927-2.0.0'
+	// WebClient
+  	testImplementation('io.projectreactor:reactor-test')
+  	implementation('org.springframework.boot:spring-boot-starter-webflux')
 }
 
 tasks.named('test') {

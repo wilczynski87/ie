@@ -50,6 +50,9 @@ public class MainController {
 			.map(MappedVolunteerAndDetails::new)
 			.toList();
 		volunteerService.setPotentialVolunteers(testList);
+		// volunteerService.getPotentialVolunteers().forEach(System.out::println);
+		// System.out.println();
+
 
 		// import from database
 		volunteerService.importVolunteerdetailsList();
