@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.hibernate.engine.internal.Collections;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -15,6 +17,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
@@ -26,8 +29,11 @@ import dlarodziny.wolontariusze.ie.IeApplication;
 public class ReadFromSheets {
 	private Sheets sheetsService;
     private String APPLICATION_NAME = "Google Sheets Example";
-    private final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private final String TOKENS_DIRECTORY_PATH = "tokens";
+    private final static GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private final static String TOKENS_DIRECTORY_PATH = "tokens";
+    private final static String CREDENTIALS_FILE_PATH = "/google-sheets-client-secret.json";
+    private final static List<String> SCOPES = Arrays.asList(SheetsScopes.SPREADSHEETS);
+
     private String SPREADSHEET_ID = "1txK2VhZ_pojHliFtKzjimlIirYqSf6cLTYN11pW_R-M";
     private String fold = "Opiekun";
 
@@ -35,7 +41,7 @@ public class ReadFromSheets {
 
         InputStream in = IeApplication.class.getResourceAsStream("/google-sheets-client-secret.json");
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
-            GsonFactory.getDefaultInstance(), 
+            JSON_FACTORY, 
             new InputStreamReader(in)
             );
 
@@ -106,5 +112,31 @@ public class ReadFromSheets {
     public void setFold(String fold) {
         this.fold = fold;
     }
-    
+
+    /**
+   * Creates an authorized Credential object.
+   *
+   * @param HTTP_TRANSPORT The network HTTP Transport.
+   * @return An authorized Credential object.
+   * @throws IOException If the credentials.json file cannot be found.
+   */
+  private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
+      throws IOException {
+    // Load client secrets.
+    InputStream in = IeApplication.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+    if (in == null) {
+      throw new FileUploadException("Resource not found: " + CREDENTIALS_FILE_PATH);
+    }
+    GoogleClientSecrets clientSecrets =
+        GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        
+    // Build flow and trigger user authorization request.
+    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+        .setAccessType("offline")
+        .build();
+    LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+    return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+  }
 }

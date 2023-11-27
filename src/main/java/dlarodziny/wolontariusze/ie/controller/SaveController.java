@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
 
+import dlarodziny.wolontariusze.ie.model.Contact;
 import dlarodziny.wolontariusze.ie.model.MappedVolunteerAndDetails;
 import dlarodziny.wolontariusze.ie.model.Volunteer;
 import dlarodziny.wolontariusze.ie.service.ContactService;
@@ -84,5 +85,47 @@ public class SaveController {
             .toList());
     }
     
+    @GetMapping("/saveContacts")
+    public String saveContacts(@RequestParam String id, @RequestParam String fold, @RequestParam String scope) throws IOException, GeneralSecurityException {
+        log.info("\n\saveVolunteers endpoint reached!\nid = {}\nfold = {}", id, fold);
+
+        credentials.setSPREADSHEET_ID(id);
+        credentials.setUpCredentials();
+
+		String range = fold + "!" + scope;
+
+		ValueRange response = credentials.readSheetsService().spreadsheets().values()
+			.get(credentials.getSpreadshitId(), range)
+			.execute();
+
+		// //import from sheet and translat to classes
+		// var contactsList = response.getValues().stream()
+		// 	.filter(row -> row != null && !row.isEmpty())
+		// 	.map(x -> (Contact)x)
+		// 	.toList();
+
+        // // saving contacts to internal list
+        // contactsList.forEach(contact -> contactService.getContactsFromRows().add(contact));
+
+        // mapping contacts to service class
+		response.getValues().stream()
+        .filter(row -> row != null && !row.isEmpty())
+        .map(contactService::mapContactFromRow)
+        .forEach(contact -> contactService.getContactsFromRows().add(contact));
+
+        // removing duplicates
+        contactService.removeDuplicatesFromRows();
+        // logger
+        System.out.printf("\nContacts size: {}\n", contactService.getContactsFromRows().size());
+
+        System.out.println("Zapisane kontakty:");
+        // send contacts to Wolontariusze
+        contactService.getContactsFromRows().stream()
+            .map(saveByRestService::saveNewContact)
+            .map(x -> x.block())
+            .forEach(System.out::println);
+
+        return "sending contacts done";
+    }
 
 }

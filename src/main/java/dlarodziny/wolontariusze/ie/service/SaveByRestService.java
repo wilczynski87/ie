@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import dlarodziny.wolontariusze.ie.model.Contact;
 import dlarodziny.wolontariusze.ie.model.Volunteer;
 import dlarodziny.wolontariusze.ie.model.Volunteerdetails;
 import io.netty.channel.ChannelOption;
@@ -42,13 +43,11 @@ public class SaveByRestService {
             .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
     
     private WebClient webClient() {
-        // myApi = myApi == null || myApi.isBlank() ? "localhost" : myApi;
-        // myUrl = myUrl == null || myUrl.isBlank() ? "8081" : myUrl;
-        myApi = myApi == null || myApi.isBlank() ? "wolontariusz.byst.re" : myApi;
+        myApi = myApi == null || myApi.isBlank() ? "localhost" : myApi;
         myUrl = myUrl == null || myUrl.isBlank() ? "327" : myUrl;
         return WebClient.builder()
-        .baseUrl(String.format("https://%s:%s", myApi, myUrl))
-        // .baseUrl("https://wolontariusz.byst.re")
+        // .baseUrl(String.format("https://%s:%s", myApi, myUrl))
+        .baseUrl("https://wolontariusz.byst.re")
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .clientConnector(new ReactorClientHttpConnector(this.httpClient))
         .build();
@@ -78,6 +77,20 @@ public class SaveByRestService {
                 }
                 else {
                     return response.createError().flux();
+                }
+            });
+    }
+
+    public Mono<Object> saveNewContact(Contact contact) {
+        return webClient().post()
+            .uri("/saveContact")
+            .bodyValue(contact)
+            .exchangeToMono(response -> {
+                if (response.statusCode().equals(HttpStatus.OK)) {
+                    return response.bodyToMono(Contact.class);
+                }
+                else {
+                    return response.createError();
                 }
             });
     }
